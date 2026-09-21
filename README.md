@@ -16,6 +16,7 @@ For this assignment, we will build a small Unix command-line shell that will pri
 
 ## Setup
 All the directions for this assignment are in this file. The starter code is split across two files: `src/lib.rs` (where the parsing logic is) and `src/main.rs` (the interactive shell driver). 
+
 Clone the repo and build with `cargo build` and make sure [rustup](https://rustup.rs/) is installed. Code submitted to Gradescope will be checked against the milestone test suite in `tests/`. Please do not modify anything in that directory as the autograder uses its own copy regardless of what you submit there.
 Additionally, there are questions for you to fill out in M2; make sure to fill them out in the `WRITEUP.md` file.
 For testing, run `cargo test [m#_]` and then `cargo run` to run the shell.
@@ -39,7 +40,61 @@ let mut child = Command::new("ls")     // the program to run
 let status = child.wait()?;            // block until it finishes
 let code: i32 = status.code().unwrap_or(0);  // its exit code
 ```
+### Why `cd` has to be built-in
+When the operating system creates a process, this process gets its own copy of the current directory (own private working directory). If we were run a shell (where the current working directory is /home/you, and we type `cd /temp`. Following the previous section, the shell forks, making a child copy of itself, and executes, loading the cd program into the child process. This same child process will call the instruction that changes the directory to `/temp`, change its own current directory to `/temp`, and exit; this will change nothing about the parent, our shell. 
 
+The only process that can change the shell's current working directory is the shell itself with no calls to fork, forcing it to be built-in. exit is built-in for a similar reason: it has to stop the shell's own loop, and a child process cannot reach up and do that.  
+
+#### Standard streams, pipes, and `Stdio`
+
+Every process gets three streams: 
+- standard input (`stdin`),
+- standard output (`stdout`), and
+- standard error (`stderr`).
+
+
+A pipe joins one process' `stdout` to the next process' `stdin`. This pipe is represented with a `|`:
+
+```text
+echo hello  --stdout-->  [pipe]  --stdin-->  wc -c
+```
+
+In Rust you set up a child's streams before you spawn it, using `Stdio`:
+
+```rust
+use std::process::Stdio;
+
+Stdio::inherit()      // reuse the shell's own stream (goes to the terminal)
+Stdio::piped()        // make a pipe; read it later through child.stdout
+Stdio::from(x)        // use an already-open stream or file `x`
+```
+
+Chaining commands means grabbing the previous child's captured output and
+feeding it into the next one:
+
+```rust
+let mut child = Command::new(prog)
+    .stdin(previous_stdout)   // Stdio::from(prev) or Stdio::inherit()
+    .stdout(Stdio::piped())   // capture it so the next stage can read it
+    .spawn()?;
+let prev_stdout = child.stdout.take();  // Option<ChildStdout> for the next stage
+```
+
+#### Redirection to and from files
+
+Redirection swaps a stream for a file. Output lands in a file instead of the terminal while input comes from a file instead of the keyboard:
+
+```rust
+use std::fs::{File, OpenOptions};
+
+let out = File::create("out.txt")?;                    // `>`  truncate/create
+let app = OpenOptions::new().create(true)
+    .append(true).open("log.txt")?;                    // `>>` append/create
+let inp = File::open("in.txt")?;                       // `<`  read
+
+// then hand any of these to the command:
+Command::new("sort").stdin(Stdio::from(inp)).stdout(Stdio::from(out)).spawn()?;
+```
 ## Milestones
 
 ### Milestone 1
@@ -125,3 +180,14 @@ Now we want to teach the parser to recognize redirection operators inside a stat
 In `run_pipeline`, a stage's own redirection wins over the pipe. 
 - If `stage.stdin` is set, open that file for input.
 - If `stage.stdout` is set, open or create that file for output, truncating or appending to match the mode.
+
+## Rules
+
+1. Edit `src/lib.rs` and `src/main.rs` only. Do not touch anything in `tests/`.
+2. Keep parsing in the library and execution in the binary. Do not spawn
+   processes from `src/lib.rs`.
+3. You may use the Rust standard library (`std::process`, `std::fs`, `std::env`,
+   `std::io`). Do not hand the work off to a real shell (`sh -c`, `system`, or a
+   `popen`-style wrapper).
+4. Built-ins (`cd`, `exit`, `pwd`) run in the shell process, never as children.
+5. A failing or unknown command must not crash the shell.
