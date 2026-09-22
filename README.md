@@ -17,9 +17,9 @@ For this assignment, we will build a small Unix command-line shell that will pri
 ## Setup
 All the directions for this assignment are in this file. The starter code is split across two files: `src/lib.rs` (where the parsing logic is) and `src/main.rs` (the interactive shell driver). 
 
-Clone the repo and build with `cargo build` and make sure [rustup](https://rustup.rs/) is installed. Code submitted to Gradescope will be checked against the milestone test suite in `tests/`. Please do not modify anything in that directory as the autograder uses its own copy regardless of what you submit there.
+Clone the repo and build with `cargo build` and make sure [rustup](https://rustup.rs/) is installed. Code submitted to Gradescope will be checked against tests in `tests/`. Please do not modify anything in that directory as the autograder uses its own copy regardless of what you submit there.
 Additionally, there are questions for you to fill out in M2; make sure to fill them out in the `WRITEUP.md` file.
-For testing, run `cargo test [m#_]` and then `cargo run` to run the shell.
+For testing, run `cargo test [m#]` and then `cargo run` to run the shell.
 
 ## Background
 
@@ -95,9 +95,9 @@ let inp = File::open("in.txt")?;                       // `<`  read
 // then hand any of these to the command:
 Command::new("sort").stdin(Stdio::from(inp)).stdout(Stdio::from(out)).spawn()?;
 ```
-## Milestones
+## Steps
 
-### Milestone 1
+### Step 1
 Fill in two functions in [`src/lib.rs`](src/lib.rs).
 #### `tokenize`
 
@@ -125,7 +125,7 @@ pub fn parse_pipeline(input: &str) -> Result<Pipeline, ParseError>
 `parse_pipeline` returns a `Pipeline` holding a
 single stage; otherwise, it returns`ParseError::EmptyStage` when a stage has no program. You will come back to both functions in M4 and M5.
 
-### Milestone 2
+### Step 2
 Implement the built-in `cd` in `src/main.rs`. The other two, `exit` and `pwd` are already provided; read these two closely as `cd` follows the same shape.
 
 #### cd
@@ -149,11 +149,11 @@ don't change the current working directory.
 
 Answer these three questions in `WRITEUP.md`.
 
-### Milestone 3
+### Step 3
 Implement `run_pipeline` in [`src/main.rs`](src/main.rs) for the single-stage case: build and spawn a `Command`, wait for it to run, and return its exit code. The file already has a skeleton mapped out for you with `prev_stdout` / `children` bookkeeping and step-by-step comments.
 Note, a missing or failing command should not crash the shell or take it down. For instance, if command is not found or exits non-zero, print a message or exit code and prompt again.
 
-### Milestone 4
+### Step 4
 Now, we will extend both the parser and the executor. 
 #### Parsing
 ```rust
@@ -169,7 +169,7 @@ pub fn parse_pipeline(_input: &str) -> Result<Pipeline, ParseError> {
 > `piped()` stdout only when there is a next stage to read it, and make sure you
 > `take()` the child's stdout so it is handed to exactly one reader.
 
-### Milestone 5
+### STep 5
 Now we want to teach the parser to recognize redirection operators inside a state and teach the executor to obey them.
 
 - `< file` sets `Command.stdin` to that file name.
