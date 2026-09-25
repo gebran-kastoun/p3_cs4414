@@ -10,7 +10,7 @@
 - Initial project release
 
 ## Introduction
-Operating systems are system softwares that handle several important services that are all handled by the core computer program, the kernel. Amongst these services are hardware and software resource management, file management, prcess management, etc. A computer program called the shell allows users to communicate with the system, translating user commands and launching other programs/processes accordingly.
+Operating systems are system software that handle several important services that are all handled by the core computer program, the kernel. Amongst these services are hardware and software resource management, file management, process management, etc. A computer program called the shell allows users to communicate with the system, translating user commands, and launching other programs/processes accordingly.
 
 For this assignment, we will build a small Unix command-line shell that will print a prompt, reads user input on the standard input stream, and executes processes required for the user command.
 
@@ -41,7 +41,7 @@ let status = child.wait()?;            // block until it finishes
 let code: i32 = status.code().unwrap_or(0);  // its exit code
 ```
 ### Why `cd` has to be built-in
-When the operating system creates a process, this process gets its own copy of the current directory (own private working directory). If we were run a shell (where the current working directory is /home/you, and we type `cd /temp`. Following the previous section, the shell forks, making a child copy of itself, and executes, loading the cd program into the child process. This same child process will call the instruction that changes the directory to `/temp`, change its own current directory to `/temp`, and exit; this will change nothing about the parent, our shell. 
+When the operating system creates a process, this process gets its own copy of the current directory (own private working directory). If we were run a shell (where the current working directory is /home/you, and we type `cd /tmp`. Following the previous section, the shell forks, making a child copy of itself, and executes, loading the cd program into the child process. This same child process will call the instruction that changes the directory to `/tmp`, change its own current directory to `/tmp`, and exit; this will change nothing about the parent, our shell. 
 
 The only process that can change the shell's current working directory is the shell itself with no calls to fork, forcing it to be built-in. exit is built-in for a similar reason: it has to stop the shell's own loop, and a child process cannot reach up and do that.  
 
@@ -107,7 +107,7 @@ pub fn tokenize(input: &str) -> Vec<String>
 
 Split the line into whitespace-separated tokens. In this assignment, the operators
 `<`, `>`, `>>`, and `|` always have spaces around them, so splitting on
-whitespace is all what's need.
+whitespace is all what's needed.
 
 - `tokenize("ls -la")` -> `["ls", "-la"]`
 - `tokenize("echo hi > out")` -> `["echo", "hi", ">", "out"]`
@@ -129,16 +129,14 @@ single stage; otherwise, it returns`ParseError::EmptyStage` when a stage has no 
 Implement the built-in `cd` in `src/main.rs`. The other two, `exit` and `pwd` are already provided; read these two closely as `cd` follows the same shape.
 
 #### cd
-​```rust
-pub fn cd(args: &[String]) -> Result<(), std::io::Error>
-​```
+Fill in the `Some(Builtin::Cd)` arm in the built-in dispatch section in `src/main.rs`. It should behave similarily in structure to the `Pwd` arm below it. 
 With 0 arguments, `cd` should go to the user's home directory by reading the
 `HOME` environment variable. With one argument, change to that directory using `std::env::set_current_dir`. If the directory doesn't exist or can't be
 entered, print an error message and keep the shell running. Don't panic and
 don't change the current working directory.
 
 - `cd` (no args) -> moves to `$HOME`
-- `cd /temp` -> moves to `/temp`
+- `cd /tmp` -> moves to `/tmp`
 - `cd /nonexistent` -> prints an error, shell keeps running, current working directory is unchanged
 
 #### `exit` and `pwd`
@@ -169,8 +167,8 @@ pub fn parse_pipeline(_input: &str) -> Result<Pipeline, ParseError> {
 > `piped()` stdout only when there is a next stage to read it, and make sure you
 > `take()` the child's stdout so it is handed to exactly one reader.
 
-### STep 5
-Now we want to teach the parser to recognize redirection operators inside a state and teach the executor to obey them.
+### Step 5
+Now we want to teach the parser to recognize redirection operators inside a stage and teach the executor to obey them.
 
 - `< file` sets `Command.stdin` to that file name.
 - `> file` sets `Command.stdout` to `(file, RedirectMode::Truncate)`.
