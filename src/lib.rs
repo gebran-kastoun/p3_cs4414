@@ -1,0 +1,67 @@
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RedirectMode {
+    // `>` : create/overwrite the file (truncate to empty first)
+    Truncate,
+    // `>>` : create if missing, otherwise append to the end
+    Append,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Command {
+    pub program: String,
+    pub args: Vec<String>,
+    pub stdin: Option<String>,
+    pub stdout: Option<(String, RedirectMode)>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Pipeline {
+    // The stages of the pipeline, left to right. Always at least one stage
+    pub stages: Vec<Command>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ParseError {
+    EmptyCommand,
+    // Pipeline stage had no program
+    EmptyStage,
+    // A redirection operator (`<`, `>`, `>>`) had no file name after it
+    MissingRedirectTarget,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Builtin {
+    // `cd [dir]`: change the shell's working directory
+    Cd,
+    /// `exit`: quit the shell
+    Exit,
+    /// `pwd`:` print the working directory
+    Pwd,
+}
+
+pub fn as_builtin(name: &str) -> Option<Builtin> {
+    match name {
+        "cd" => Some(Builtin::Cd),
+        "exit" => Some(Builtin::Exit),
+        "pwd" => Some(Builtin::Pwd),
+        _ => None,
+    }
+}
+
+pub fn tokenize(_input: &str) -> Vec<String> {
+    todo!("Step 1: split the input on whitespace")
+}
+
+pub fn parse_command(_tokens: &[String]) -> Result<Command, ParseError> {
+    todo!(
+        "Step 1: fill program + args from the tokens. 
+         Step 5: handle `<`, `>`, and `>>` redirection operators"
+    )
+}
+
+pub fn parse_pipeline(_input: &str) -> Result<Pipeline, ParseError> {
+    todo!(
+        "Step 1: handle a single command with no pipes. \
+         Step 4: split on '|' and parse each stage into the pipeline"
+    )
+}
