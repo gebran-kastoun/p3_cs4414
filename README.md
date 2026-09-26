@@ -19,7 +19,7 @@ All the directions for this assignment are in this file. The starter code is spl
 
 Clone the repo and build with `cargo build` and make sure [rustup](https://rustup.rs/) is installed. Code submitted to Gradescope will be checked against tests in `tests/`. Please do not modify anything in that directory as the autograder uses its own copy regardless of what you submit there.
 Additionally, there are questions for you to fill out in step 2; make sure to fill them out in the `WRITEUP.md` file.
-For testing, run `cargo test [m#]` and then `cargo run` to run the shell.
+For testing, run `cargo test [s#]` and then `cargo run` to run the shell.
 
 ## Background
 
