@@ -2,12 +2,14 @@
 
 ## Logistics
 
-This homework may be done individually or with a partner (recommended).
-The full submission is due Mon, Oct 19 at 11:59 PM via Gradescope.
+This homework may be done individually or with a partner
+(recommended).  Step 1 is due by Mon, Oct 5 at 11:59 PM (Step 2 is
+strongly recommended).  The full submission is due Mon, Oct 19 at
+11:59 PM via Gradescope.
 
 ## Changelog
 
-2026-09-28:
+2026-09-29:
 - Initial project release
 
 ## Introduction
