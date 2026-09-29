@@ -1,25 +1,51 @@
 use std::env;
-use std::io::{self, Write};
+use std::io::{self, Write, BufRead, Result};
 use std::path::Path;
 use std::process::{Child, ChildStdout, Command};
 
 use minishell::{as_builtin, parse_pipeline, Builtin, Pipeline};
 
-fn main() {
-    // Read-eval-print loop
+/// Wrapper around read_line for Stdin and for file BufReader instances
+trait LineReader {
+    fn read(&mut self, buf: &mut String) -> Result<usize>;
+}
+
+/// Wrapper around read_line for Stdin (usual command source)
+impl LineReader for io::Stdin {
+    fn read(&mut self, buf: &mut String) -> Result<usize> {
+        self.read_line(buf)
+    }
+}
+
+/// Wrapper around read_line for a file wrapped in a BufReader
+impl LineReader for io::BufReader<std::fs::File> {
+    fn read(&mut self, buf: &mut String) -> Result<usize> {
+        self.read_line(buf)
+    }
+}
+
+/// Write a prompt for the interactive mini-shell
+fn write_prompt() -> io::Result<()> {
+    let prompt = match env::current_dir() {
+        Ok(dir) => format!("minishell:{}> ", dir.display()),
+        Err(_) => "minishell> ".to_string(),
+    };
+    print!("{prompt}");
+    io::stdout().flush() // Ensure prompt shows before input
+}
+
+/// 
+
+/// Mini-shell REPL
+fn repl<T: LineReader>(is_interactive: bool, mut cmd_stream: T) {
     loop {
-        let prompt = match env::current_dir() {
-            Ok(dir) => format!("minishell:{}> ", dir.display()),
-            Err(_) => "minishell> ".to_string(),
-        };
-        print!("{prompt}");
-        // Flush such that prompt shows up before blocking on input
-        if io::stdout().flush().is_err() {
+        // Produce prompt if we're in interactive mode
+        if is_interactive && write_prompt().is_err() {
             break;
         }
 
         let mut line = String::new();
-        match io::stdin().read_line(&mut line) {
+        match cmd_stream.read(&mut line) {
             Ok(0) => break,
             Ok(_) => {}
             Err(e) => {
@@ -55,6 +81,9 @@ fn main() {
                     }
                     continue;
                 }
+                Some(Builtin::Source) => {
+                    todo!("Read and execute commands from file here (source)");
+                }
                 None => {} // Not a built-in: fall through to external execution.
             }
         }
@@ -80,15 +109,19 @@ fn run_pipeline(pipeline: &Pipeline) -> io::Result<i32> {
 
         // Recommended strategy
         // 1: decide this stage's stdin, then call cmd.stdin(...)
-        // - step 4: does it come from the previous stage or the shell's own input?
+        // - step 4: does it come from the previous stage or the
+        //   shell's own input?
         // - step 5: what if the stage names its own file with `<`?
+        // - step 6: what if the stage specifies `< URL`?
 
         // 2: decide this stage's stdout, then call cmd.stdout(...)
-        // - step 4: does it need to go to the next stage, or should the user see it?
+        // - step 4: does it need to go to the next stage, or should
+        //   the user see it?
         // - step 5: what if the stage names its own file with `>` / `>>`?
 
         // 3: spawn the command and keep track of it
-        // - on success: hand this stage's output to the next stage, and remember the child
+        // - on success: hand this stage's output to the next stage,
+        //   and remember the child
         // - on failure: what should happen to the rest of the pipeline?
 
         // This line only exists so the starter compiles - delete it once 1-3 are done.
@@ -97,4 +130,8 @@ fn run_pipeline(pipeline: &Pipeline) -> io::Result<i32> {
     }
     // Step 3: wait for every child to finish. Return the exit code of the last child.
     todo!("Step 3: wait for all children and return the final stage's exit code");
+}
+
+fn main() {
+    repl(true, io::stdin());
 }

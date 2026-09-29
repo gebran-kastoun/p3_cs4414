@@ -31,8 +31,10 @@ pub enum ParseError {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Builtin {
-    // `cd [dir]`: change the shell's working directory
+    /// `cd [dir]`: change the shell's working directory
     Cd,
+    /// `source [file]`: execute commands from file in the current shell
+    Source,
     /// `exit`: quit the shell
     Exit,
     /// `pwd`:` print the working directory
@@ -42,6 +44,7 @@ pub enum Builtin {
 pub fn as_builtin(name: &str) -> Option<Builtin> {
     match name {
         "cd" => Some(Builtin::Cd),
+        "source" => Some(Builtin::Source),
         "exit" => Some(Builtin::Exit),
         "pwd" => Some(Builtin::Pwd),
         _ => None,
