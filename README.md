@@ -9,6 +9,9 @@ strongly recommended).  The full submission is due Mon, Oct 19 at
 
 ## Changelog
 
+2026-10-01:
+- Rename `test` to `tests` so tests run.
+
 2026-09-29:
 - Initial project release
 
