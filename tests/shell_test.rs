@@ -20,6 +20,44 @@ fn shell() -> Command {
     Command::cargo_bin("minishell").expect("binary builds")
 }
 
+// Step 2
+
+#[test]
+fn s2_check_pwd() {
+    let dir = std::env::current_dir().expect("Run from valid directory");
+    shell()
+        .write_stdin("pwd\n")
+        .assert()
+        .success()
+        .stdout(predicates::str::contains(format!("{}", dir.display())));
+}
+
+#[test]
+fn s2_check_cd() {
+    let mut dir = std::env::current_dir().expect("Run from valid directory");
+    dir.push("src");
+    shell()
+        .write_stdin("cd src\npwd\n")
+        .assert()
+        .success()
+        .stdout(predicates::str::contains(format!("{}", dir.display())));
+}
+
+#[test]
+fn s2_check_source() {
+    let path = temp_path("out");
+    let _ = std::fs::remove_file(&path);
+    std::fs::write(&path, "cd src\npwd\n").expect("Write temp file");
+    let mut dir = std::env::current_dir().expect("Run from valid directory");
+    dir.push("src");
+    shell()
+        .write_stdin(format!("source {}\n", path.display()))
+        .assert()
+        .success()
+        .stdout(predicates::str::contains(format!("{}", dir.display())));
+    let _ = std::fs::remove_file(&path);
+}
+
 // Step 3
 
 #[test]
@@ -120,4 +158,24 @@ fn s5_input_redirection_reads_file() {
         .stdout(predicates::str::contains("6"));
 
     let _ = std::fs::remove_file(&path);
+}
+
+// Step 6
+
+#[test]
+fn s6_input_redirection_reads_url() {
+    shell()
+        .write_stdin("wc -l < https://www.cs.cornell.edu/courses/cs4414/2026fa/lab/01-intro.html\nexit\n")
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("760"));
+}
+
+#[test]
+fn s6_input_from_url_with_pipeline() {
+    shell()
+        .write_stdin("cat < https://www.cs.cornell.edu/courses/cs4414/2026fa/lab/01-intro.html | wc -l\nexit\n")
+        .assert()
+        .success()
+        .stdout(predicates::str::contains("760"));
 }
