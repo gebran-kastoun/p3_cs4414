@@ -56,24 +56,21 @@ pub fn tokenize(input: &str) -> Vec<String> {
 }
 
 pub fn parse_command(tokens: &[String]) -> Result<Command, ParseError> {
-    todo!(
-        "Step 1: fill program + args from the tokens. 
-         Step 5: handle `<`, `>`, and `>>` redirection operators"
-    )
     if tokens.is_empty() {
         return Err(ParseError::EmptyCommand);
     }
     Ok(Command {
-        program: tokens[0],clone(),
+        program: tokens[0].clone(),
         args: tokens[1..].to_vec(),
         stdin: None,
         stdout: None,
     })
 }
 
-pub fn parse_pipeline(_input: &str) -> Result<Pipeline, ParseError> {
-    todo!(
-        "Step 1: handle a single command with no pipes. \
-         Step 4: split on '|' and parse each stage into the pipeline"
-    )
+pub fn parse_pipeline(input: &str) -> Result<Pipeline, ParseError> {
+    let tokens = tokenize(input);
+    let command = parse_command(&tokens)?;
+
+    Ok(Pipeline {stages: vec![command],})
+
 }
