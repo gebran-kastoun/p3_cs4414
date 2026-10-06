@@ -51,15 +51,24 @@ pub fn as_builtin(name: &str) -> Option<Builtin> {
     }
 }
 
-pub fn tokenize(_input: &str) -> Vec<String> {
-    todo!("Step 1: split the input on whitespace")
+pub fn tokenize(input: &str) -> Vec<String> {
+    input.split_whitespace().map(|word| word.to_string()).collect()
 }
 
-pub fn parse_command(_tokens: &[String]) -> Result<Command, ParseError> {
+pub fn parse_command(tokens: &[String]) -> Result<Command, ParseError> {
     todo!(
         "Step 1: fill program + args from the tokens. 
          Step 5: handle `<`, `>`, and `>>` redirection operators"
     )
+    if tokens.is_empty() {
+        return Err(ParseError::EmptyCommand);
+    }
+    Ok(Command {
+        program: tokens[0],clone(),
+        args: tokens[1..].to_vec(),
+        stdin: None,
+        stdout: None,
+    })
 }
 
 pub fn parse_pipeline(_input: &str) -> Result<Pipeline, ParseError> {
